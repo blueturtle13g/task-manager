@@ -1,40 +1,39 @@
 const express = require('express');
 const auth = require('../middlewares/auth');
 const Task = require('../models/task');
-const User = require('../models/user');
 
 const router = express.Router();
 
 router.post('/tasks', auth, async (req, res)=>{
     try{
-        const task = await  new Task({owner: req.user._id, ...req.body}).save();
-        res.send(task);
+        const task = await  new Task({ ...req.body, owner: req.user._id}).save();
+        res.status(201).send({task});
     }catch(e){
         console.log('e: ', e);
-        res.status(500).send(e)
+        
+        res.status(400).send(e)
     }
 });
 
 router.patch('/tasks/:id', auth, async (req, res)=>{
     try{
-        const task = await  Task.findOne({owner: req.user._id, _id: req.params.id});
+        const task = await  Task.findOne({ _id: req.params.id, owner: req.user._id });
         if(!task){
-            res.status(404).send({error: 'task not found'})
+            res.status(404).send({error: 'task not found'});
             return;
         }
         const allowedParams = ['title', 'description', 'completed'];
         const passedParams = Object.keys(req.body);
         if(!passedParams.every(passedParam=>allowedParams.includes(passedParam))){
-            res.send({error: 'you cant update such properties'})
+            res.send({error: 'you cant update such properties'});
             return;
         }
         passedParams.forEach(passedParam=>{
             task[passedParam] = req.body[passedParam]
         });
         await task.save();
-        res.send(task);
+        res.send({task});
     }catch(e){
-        console.log('e: ', e);
         res.status(500).send(e)
     }
 });
@@ -43,12 +42,11 @@ router.get('/tasks/:id', auth, async (req, res)=>{
     try{
         const task = await  Task.findOne({owner: req.user._id, _id: req.params.id});
         if(!task){
-            res.status(404).send({error: 'task not found'})
+            res.status(404).send({error: 'task not found'});
             return;
         }
-        res.send(task);
+        res.send({task});
     }catch(e){
-        console.log('e: ', e);
         res.status(500).send(e)
     }
 });
@@ -57,12 +55,11 @@ router.delete('/tasks/:id', auth, async (req, res)=>{
     try{
         const task = await  Task.findOneAndDelete({owner: req.user._id, _id: req.params.id});
         if(!task){
-            res.status(404).send({error: 'task not found'})
+            res.status(404).send({error: 'task not found'});
             return;
         }
         res.send({task, message: 'successfully deleted the task'});
     }catch(e){
-        console.log('e: ', e);
         res.status(500).send(e)
     }
 });
@@ -93,9 +90,8 @@ router.get('/tasks', auth, async (req, res)=>{
                 sort
             },
         }).execPopulate();
-        res.send(req.user.tasks);
+        res.send({tasks: req.user.tasks});
     }catch(e){
-        console.log('e: ', e);
         res.status(500).send(e)
     }
 });

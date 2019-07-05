@@ -18,6 +18,7 @@ const userSchema = new mongoose.Schema({
     },
     email:{
         type: String,
+        required: true,
         unique: true,
         validate(v){
             if(!validator.isEmail(v)){
@@ -84,8 +85,7 @@ userSchema.pre('save', async function (next){
 
 userSchema.pre('remove', async function (next) {
     const tasks = await Task.deleteMany({owner: this._id});
-    console.log('tasks: ', tasks);
-    
+
     next()
 });
 
@@ -96,7 +96,6 @@ userSchema.statics.findByCredentials = async credentials=>{
     }
 
     const isMatch = await bcrypt.compare(credentials.password, user.password);
-    console.log('isMatch :', isMatch);
     if(!isMatch){
         return {error: 'password is invalid'}
     }

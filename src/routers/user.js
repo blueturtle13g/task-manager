@@ -14,7 +14,6 @@ router.post('/users', async (req, res)=>{
         sendWelcomeEmail(user.email, user.name);
         res.status(201).send({user, token});
     }catch(e){
-        console.log(e);
         res.status(400).send(e)
     }
 });
@@ -30,7 +29,6 @@ router.post('/users/login', async (req, res)=>{
         const token = await user.generateJWT();
         res.send({user, token});
     }catch(e){
-        console.log('e :', e);
         res.status(500).send(e)
     }
 });
@@ -41,7 +39,6 @@ router.post('/users/logout', auth, async (req, res)=>{
         await req.user.save();
         res.send();
     }catch(e){
-        console.log(e);
         res.status(500).send(e)
     }
 });
@@ -52,7 +49,6 @@ router.post('/users/logoutAll', auth, async (req, res)=>{
         await req.user.save();
         res.send();
     }catch(e){
-        console.log(e);
         res.status(500).send(e)
     }
 });
@@ -65,9 +61,8 @@ router.delete('/users/me', auth, async(req, res)=>{
     try{
         await req.user.remove();
         sendGoodbyeEmail(req.user.email, req.user.name);
-        res.send(req.user);
+        res.send({user: req.user});
     }catch(e){
-        console.log('e: ', e);
         res.status(500).send(e)
     }
 });
@@ -82,9 +77,8 @@ router.patch('/users/:id', async(req, res)=>{
     try{
         updates.forEach(update=>req.user[update] = req.body[update]);
         await req.user.save();
-        res.send(req.user)
+        res.send({user: req.user})
     }catch(e){
-        console.log('e', e);
         res.status(500).send(e)
     }
 });
@@ -108,8 +102,6 @@ router.post('/users/me/avatar', auth, upload.single('avatar'), async (req, res)=
         await req.user.save();
         res.send()
     }catch(e){
-        console.log('e: ', e);
-        
         res.status(500).send({error: e});
     }
 
